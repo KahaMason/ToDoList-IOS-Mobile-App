@@ -11,7 +11,7 @@ import UIKit
 class MasterViewController: UITableViewController {
 
     var detailViewController: DetailViewController? = nil
-
+    var taskstodo = [Task]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -59,7 +59,13 @@ class MasterViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         
     }
-
-
+    
+    func loadsamples() {
+        let task1 = Task(name: "New Task 1")
+        let task2 = Task(name: "New Task 2")
+        let task3 = Task(name: "New Task 3")
+        
+        taskstodo = [task3, task2, task1]
+    }
 }
 
