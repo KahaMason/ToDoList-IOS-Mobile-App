@@ -41,7 +41,15 @@ class MasterViewController: UITableViewController {
     // MARK: - OBJC Functions
     
     @objc func addTask() {
-        print("Adding Task")
+        //print("Adding Task") //<- Debug For Add Button Tap
+        
+        let tasknumber = (taskstodo.count) + 1
+        let newtask = Task(name: "New Task \(tasknumber)")
+        
+        taskstodo.insert(newtask, at: 0) // Inserts task into first position of array
+        
+        let indexPath = IndexPath(row: 0, section: 0)
+        tableView.insertRows(at: [indexPath], with: .automatic)
     }
     
     @objc func editTask() {
