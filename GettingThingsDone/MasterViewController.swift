@@ -18,6 +18,7 @@ class MasterViewController: UITableViewController {
         
         view.backgroundColor = UIColor.black
         
+        setupNavigation()
         loadsamples()
         
         if let split = splitViewController {
@@ -34,6 +35,17 @@ class MasterViewController: UITableViewController {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    // MARK: - OBJC Functions
+    
+    // Add Button Function
+    @objc func addTask() {
+        print("Adding Task")
+    }
+    
+    @objc func editTask() {
+        print("Editing Task")
     }
 
     // MARK: - Segues
@@ -79,6 +91,13 @@ class MasterViewController: UITableViewController {
     }
     
     // MARK: - Setup Functions
+    
+    // Setup Navigation - Edit Button | Title | Add Button
+    func setupNavigation() {
+        navigationItem.title = "Things to Do"
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editTask))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addTask))
+    }
     
     // Loads Samples
     func loadsamples() {
