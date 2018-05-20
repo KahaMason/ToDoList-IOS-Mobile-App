@@ -16,6 +16,10 @@ class MasterViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        view.backgroundColor = UIColor.black
+        
+        loadsamples()
+        
         if let split = splitViewController {
             let controllers = split.viewControllers
             detailViewController = (controllers[controllers.count-1] as! UINavigationController).topViewController as? DetailViewController
@@ -39,27 +43,44 @@ class MasterViewController: UITableViewController {
     }
 
     // MARK: - Table View
-
+    
+    // Number of Sections
     override func numberOfSections(in tableView: UITableView) -> Int {
-        
+        return 1
     }
-
+    
+    // Number of Rows in Each Section
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        
+        return taskstodo.count
     }
-
+    
+    // Data for Each Cell
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         
+        let task = taskstodo[indexPath.row]
+        
+        // Configure Cell
+        cell.textLabel?.text = task.name
+        cell.textLabel?.textColor = UIColor.lightGray
+        cell.backgroundColor = UIColor.black
+        
+        return cell
     }
-
+    
+    // Enables Editing Mode
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         return true
     }
-
+    
+    // Editing Functions
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         
     }
     
+    // MARK: - Setup Functions
+    
+    // Loads Samples
     func loadsamples() {
         let task1 = Task(name: "New Task 1")
         let task2 = Task(name: "New Task 2")
