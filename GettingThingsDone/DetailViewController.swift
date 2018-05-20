@@ -8,18 +8,14 @@
 
 import UIKit
 
-class DetailViewController: UIViewController {
+class DetailViewController: UITableViewController {
 
     @IBOutlet weak var detailDescriptionLabel: UILabel!
 
 
     func configureView() {
         // Update the user interface for the detail item.
-        if let detail = detailItem {
-            if let label = detailDescriptionLabel {
-                label.text = detail.description
-            }
-        }
+        
     }
 
     override func viewDidLoad() {
@@ -39,7 +35,5 @@ class DetailViewController: UIViewController {
             configureView()
         }
     }
-
-
 }
 
