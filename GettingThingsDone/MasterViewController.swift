@@ -11,6 +11,7 @@ import UIKit
 class MasterViewController: UITableViewController {
 
     var detailViewController: DetailViewController? = nil
+    var sectionHeaders = ["YET TO DO", "COMPLETED"]
     var taskstodo = [Task]()
 
     override func viewDidLoad() {
@@ -39,7 +40,6 @@ class MasterViewController: UITableViewController {
     
     // MARK: - OBJC Functions
     
-    // Add Button Function
     @objc func addTask() {
         print("Adding Task")
     }
@@ -58,12 +58,31 @@ class MasterViewController: UITableViewController {
     
     // Number of Sections
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
+        return sectionHeaders.count
+    }
+    
+    // View for the Header Cell
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let header = UILabel()
+        
+        header.text = sectionHeaders[section]
+        header.textColor = UIColor.lightGray
+        header.textAlignment = .center
+        
+        return header
+    }
+    
+    // Heigh for the Header Cell
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 80
     }
     
     // Number of Rows in Each Section
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return taskstodo.count
+        if section == 0 {
+            return taskstodo.count
+        }
+        return 0
     }
     
     // Data for Each Cell
