@@ -53,7 +53,10 @@ class MasterViewController: UITableViewController {
     }
     
     @objc func editTask() {
-        print("Editing Task")
+        //print("Editing Task") //<- Debug For Test Button Tap
+        
+        self.tableView.isEditing = !self.tableView.isEditing // Crash if state is not editing when it should be
+        self.navigationItem.leftBarButtonItem?.title = (self.tableView.isEditing) ? "Done" : "Edit"
     }
 
     // MARK: - Segues
@@ -114,7 +117,10 @@ class MasterViewController: UITableViewController {
     
     // Editing Functions
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        
+        if editingStyle == .delete {
+            taskstodo.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .fade)
+        }
     }
     
     // MARK: - Setup Functions

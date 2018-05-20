@@ -33,6 +33,19 @@ class GettingThingsDoneUITests: XCTestCase {
         addButton.tap()
         
         XCTAssertEqual(app.tables.cells.count, 6)
+    }
+    
+    func testEditButtonDelete() {
         
+        let app = XCUIApplication()
+        let editButton = app.navigationBars["Things to Do"].buttons["Edit"]
+        editButton.tap()
+        
+        let tablesQuery = app.tables
+        tablesQuery/*@START_MENU_TOKEN@*/.buttons["Delete New Task 3"]/*[[".cells.buttons[\"Delete New Task 3\"]",".buttons[\"Delete New Task 3\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.tap()
+        tablesQuery.buttons["Delete"].tap()
+        editButton.tap()
+        
+        XCTAssertEqual(app.tables.cells.count, 2)
     }
 }
