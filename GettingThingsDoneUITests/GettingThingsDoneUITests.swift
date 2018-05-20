@@ -18,13 +18,15 @@ class GettingThingsDoneUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    func testTaskTableUILoad() {
+    func testTableViewLoads() {
+        
         let app = XCUIApplication()
         app.tables/*@START_MENU_TOKEN@*/.staticTexts["New Task 3"]/*[[".cells.staticTexts[\"New Task 3\"]",".staticTexts[\"New Task 3\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.tap()
         app.navigationBars["Master"].buttons["Things to Do"].tap()
     }
 
     func testAddButton() {
+        
         let app = XCUIApplication()
         
         let addButton = XCUIApplication().navigationBars["Things to Do"].buttons["Add"]

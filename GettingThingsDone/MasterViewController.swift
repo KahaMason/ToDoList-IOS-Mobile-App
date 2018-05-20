@@ -63,6 +63,16 @@ class MasterViewController: UITableViewController {
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
+        // DetailViewController Segue - Tap Cell Action
+        if segue.identifier == "showDetail" {
+            if let indexPath = tableView.indexPathForSelectedRow {
+                let controller = (segue.destination as! UINavigationController).topViewController as! DetailViewController
+                
+                controller.taskItem = taskstodo[indexPath.row]
+                controller.navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
+                controller.navigationItem.leftItemsSupplementBackButton = true
+            }
+        }
     }
 
     // MARK: - Table View
@@ -76,6 +86,7 @@ class MasterViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let header = UILabel()
         
+        // Configure Header Label
         header.text = sectionHeaders[section]
         header.textColor = UIColor.lightGray
         header.textAlignment = .center
