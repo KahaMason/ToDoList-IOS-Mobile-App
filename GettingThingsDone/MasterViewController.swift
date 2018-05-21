@@ -56,9 +56,6 @@ class MasterViewController: UITableViewController {
     
     @objc func editTask() {
         //print("Editing Task") //<- Debug For Test Button Tap
-        
-        self.tableView.isEditing = !self.tableView.isEditing // Crash if state is not editing when it should be
-        self.navigationItem.leftBarButtonItem?.title = (self.tableView.isEditing) ? "Done" : "Edit"
     }
 
     // MARK: - Segues
