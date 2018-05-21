@@ -13,6 +13,7 @@ class MasterViewController: UITableViewController {
     var detailViewController: DetailViewController? = nil
     var sectionHeaders = ["YET TO DO", "COMPLETED"]
     var taskstodo = [Task]()
+    var completedtasks = [Task]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -68,7 +69,14 @@ class MasterViewController: UITableViewController {
             if let indexPath = tableView.indexPathForSelectedRow {
                 let controller = (segue.destination as! UINavigationController).topViewController as! DetailViewController
                 
-                controller.taskItem = taskstodo[indexPath.row]
+                switch indexPath.section {
+                    
+                case 0: controller.taskItem = taskstodo[indexPath.row]
+                case 1: controller.taskItem = completedtasks[indexPath.row]
+                default: fatalError("Could not locate Task Details")
+                    
+                }
+                
                 controller.navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
                 controller.navigationItem.leftItemsSupplementBackButton = true
             }
@@ -96,25 +104,37 @@ class MasterViewController: UITableViewController {
     
     // Heigh for the Header Cell
     override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 80
+        return 50
     }
     
     // Number of Rows in Each Section
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if section == 0 {
-            return taskstodo.count
+        switch section {
+        
+        case 0: return taskstodo.count
+        case 1: return completedtasks.count
+        default: fatalError("Could not find Number of Rows for Section")
         }
-        return 0
     }
     
     // Data for Each Cell
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         
-        let task = taskstodo[indexPath.row]
+        switch indexPath.section {
+        
+        case 0:
+            let task = taskstodo[indexPath.row]
+            cell.textLabel?.text = task.name
+        
+        case 1:
+            let task = completedtasks[indexPath.row]
+            cell.textLabel?.text = task.name
+            
+        default: fatalError("Could not locate Cell Data")
+        }
         
         // Configure Cell
-        cell.textLabel?.text = task.name
         cell.textLabel?.textColor = UIColor.lightGray
         cell.backgroundColor = UIColor.black
         
@@ -131,6 +151,31 @@ class MasterViewController: UITableViewController {
         if editingStyle == .delete {
             taskstodo.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
+        }
+    }
+    
+    // Enables Row Movement
+    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    
+    // Controlls Row Movement and Updates the Array Containers
+    override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        print("Moving Cell from: \(sourceIndexPath) to: \(destinationIndexPath)")
+        
+        switch destinationIndexPath.section {
+        
+        case 0:
+            let task = taskstodo[sourceIndexPath.row]
+            taskstodo.insert(task, at: destinationIndexPath.row)
+            taskstodo.remove(at: sourceIndexPath.row)
+        
+        case 1:
+            let task = taskstodo[sourceIndexPath.row]
+            completedtasks.insert(task, at: destinationIndexPath.row)
+            taskstodo.remove(at: sourceIndexPath.row)
+        
+        default: fatalError("App did not find destination of cell")
         }
     }
     

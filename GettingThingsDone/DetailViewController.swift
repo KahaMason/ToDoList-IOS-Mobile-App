@@ -48,7 +48,7 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
     
     // Height of Section Headers
     override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 80
+        return 50
     }
 
     // Number of Rows in each Section
