@@ -165,18 +165,23 @@ class MasterViewController: UITableViewController {
         //print("Moving Cell from: \(sourceIndexPath) to: \(destinationIndexPath)")
         
         var task: Task?
+        let date = currentdate()
+        var history: String?
         
         switch sourceIndexPath.section {
         
         case 0:
             switch destinationIndexPath.section {
             
-            case 0: // Yet to Completed to Yet to Complete
+            case 0: // Yet to Do to Yet to Do
                 task = taskstodo[sourceIndexPath.row]
                 taskstodo.remove(at: sourceIndexPath.row)
                 taskstodo.insert(task!, at: destinationIndexPath.row)
                 
-            case 1: // Yet to Completed to Completed Tasks
+            case 1: // Yet to Do to Completed Tasks
+                history = "\(date) Moved to Completed"
+                taskstodo[sourceIndexPath.row].history.insert(history!, at: 0)
+                
                 task = taskstodo[sourceIndexPath.row]
                 taskstodo.remove(at: sourceIndexPath.row)
                 completedtasks.insert(task!, at: destinationIndexPath.row)
@@ -188,8 +193,11 @@ class MasterViewController: UITableViewController {
         case 1:
             switch destinationIndexPath.section {
                 
-            case 0: // Completed Task to Yet to Completed
-                task = taskstodo[sourceIndexPath.row]
+            case 0: // Completed Task to Yet to Do
+                history = ("\(date) Moved to Yet To Do")
+                completedtasks[sourceIndexPath.row].history.insert(history!, at: 0)
+                
+                task = completedtasks[sourceIndexPath.row]
                 completedtasks.remove(at: sourceIndexPath.row)
                 taskstodo.insert(task!, at: destinationIndexPath.row)
                 
