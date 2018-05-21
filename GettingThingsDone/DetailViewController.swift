@@ -44,6 +44,36 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
         
         //dump(taskItem?.history) // <- Debug for Task History Array
     }
+    
+    // MARK: - TextField Functions
+    
+    // Enables the return key to finish editing a TextField
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
+    }
+    
+    // Updates the Task Item's information to the array when finished editing
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        //print("Finished Editing TextField") // Debug: For Finished Editing
+        
+        // Finds and retrieves the position of the cell thats textfield is being edited
+        let cell = textField.superview?.superview as! DetailViewCell
+        let indexPath = self.tableView.indexPath(for: cell)
+        
+        // Guard against returning empty textfield
+        if textField.text?.isEmpty == false {
+            switch indexPath?.section {
+            
+            case 0?: taskItem?.name = textField.text!
+            case 1?: taskItem?.history[(indexPath?.row)!] = textField.text!
+            default: fatalError("No TextFields Selected")
+            
+            }
+            
+            tableView.reloadRows(at: [indexPath!], with: .none)
+        }
+    }
 
     // MARK: - Table View
 
@@ -92,6 +122,7 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
         default: fatalError("Cannot Identify Section Destination of Cell")
         }
         
+        cell.detailField.delegate = self
         cell.detailField.textColor = UIColor.lightGray
         cell.detailField.backgroundColor = UIColor.black
         cell.backgroundColor = UIColor.black
