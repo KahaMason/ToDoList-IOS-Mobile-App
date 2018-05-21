@@ -53,8 +53,13 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
 
     // Number of Rows in each Section
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if section == 0 {return 1}
-        return 0
+        switch section {
+        
+        case 0: return 1
+        case 1: return (taskItem?.history.count)!
+        case 2: return 0
+        default: fatalError("Could not determine Number of Rows per Section")
+        }
     }
 
     // Data for each cell
@@ -62,9 +67,11 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
         let cell = tableView.dequeueReusableCell(withIdentifier: "DetailCell", for: indexPath) as! DetailViewCell
         
         switch indexPath.section {
-            case 0: cell.detailField.text = taskItem?.name
-            
-            default: fatalError("Cannot Identify Section Destination of Cell")
+        
+        case 0: cell.detailField.text = taskItem?.name
+        case 1: cell.detailField.text = taskItem?.history[indexPath.row]
+        case 2: cell.detailField.text = nil
+        default: fatalError("Cannot Identify Section Destination of Cell")
         }
         
         cell.detailField.textColor = UIColor.lightGray

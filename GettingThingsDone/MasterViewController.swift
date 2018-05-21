@@ -44,8 +44,9 @@ class MasterViewController: UITableViewController {
     @objc func addTask() {
         //print("Adding Task") //<- Debug For Add Button Tap
         
+        let creation = currentdate() // Function Referenced in Task.swift
         let tasknumber = (taskstodo.count + completedtasks.count) + 1
-        let newtask = Task(name: "New Task \(tasknumber)")
+        let newtask = Task(name: "New Task \(tasknumber)", history:["\(creation) Task Created"])
         
         taskstodo.insert(newtask, at: 0) // Inserts task into first position of array
         
@@ -216,11 +217,12 @@ class MasterViewController: UITableViewController {
     
     // Loads Samples
     func loadsamples() {
-        let task1 = Task(name: "New Task 1")
-        let task2 = Task(name: "New Task 2")
-        let task3 = Task(name: "New Task 3")
+        let creation = currentdate() // Function Referenced in Task.swift
+        
+        let task1 = Task(name: "New Task 1", history: ["\(creation) Task Created"])
+        let task2 = Task(name: "New Task 2", history: ["\(creation) Task Created"])
+        let task3 = Task(name: "New Task 3", history: ["\(creation) Task Created"])
         
         taskstodo = [task3, task2, task1]
     }
 }
-
