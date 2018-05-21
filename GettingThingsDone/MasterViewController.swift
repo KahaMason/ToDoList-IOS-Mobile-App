@@ -162,7 +162,7 @@ class MasterViewController: UITableViewController {
     
     // Controlls Row Movement and Updates the Array Containers
     override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-        print("Moving Cell from: \(sourceIndexPath) to: \(destinationIndexPath)")
+        //print("Moving Cell from: \(sourceIndexPath) to: \(destinationIndexPath)")
         
         var task: Task?
         
@@ -204,6 +204,10 @@ class MasterViewController: UITableViewController {
         
         default: fatalError("App did not find destination of cell")
         }
+        
+        // Debug - Shows the ordering of array entries after cell is moved
+        //dump(taskstodo)
+        //dump(completedtasks)
     }
     
     // MARK: - Setup Functions

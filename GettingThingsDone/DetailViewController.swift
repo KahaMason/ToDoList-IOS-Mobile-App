@@ -20,11 +20,29 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
         tableView.dataSource = self
         
         view.backgroundColor = UIColor.black
+        navigationItem.title = "Task"
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addHistory))
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    // MARK: - OBJC Functions
+    
+    @objc func addHistory() {
+        //print("Adding to History") // <- Debug for Add Hisotry Button
+        
+        // Construct Timestamp and Position in History Array and TableView
+        let date = currentdate()
+        let newhistory = "\(date) New History"
+        let indexPath = IndexPath(row: 0, section: 1)
+        
+        taskItem?.history.insert(newhistory, at: indexPath.row)
+        tableView.insertRows(at: [indexPath], with: .automatic)
+        
+        //dump(taskItem?.history) // <- Debug for Task History Array
     }
 
     // MARK: - Table View
