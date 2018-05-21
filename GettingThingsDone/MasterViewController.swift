@@ -44,7 +44,7 @@ class MasterViewController: UITableViewController {
     @objc func addTask() {
         //print("Adding Task") //<- Debug For Add Button Tap
         
-        let tasknumber = (taskstodo.count) + 1
+        let tasknumber = (taskstodo.count + completedtasks.count) + 1
         let newtask = Task(name: "New Task \(tasknumber)")
         
         taskstodo.insert(newtask, at: 0) // Inserts task into first position of array
@@ -163,17 +163,43 @@ class MasterViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         print("Moving Cell from: \(sourceIndexPath) to: \(destinationIndexPath)")
         
-        switch destinationIndexPath.section {
+        var task: Task?
+        
+        switch sourceIndexPath.section {
         
         case 0:
-            let task = taskstodo[sourceIndexPath.row]
-            taskstodo.insert(task, at: destinationIndexPath.row)
-            taskstodo.remove(at: sourceIndexPath.row)
+            switch destinationIndexPath.section {
+            
+            case 0: // Yet to Completed to Yet to Complete
+                task = taskstodo[sourceIndexPath.row]
+                taskstodo.remove(at: sourceIndexPath.row)
+                taskstodo.insert(task!, at: destinationIndexPath.row)
+                
+            case 1: // Yet to Completed to Completed Tasks
+                task = taskstodo[sourceIndexPath.row]
+                taskstodo.remove(at: sourceIndexPath.row)
+                completedtasks.insert(task!, at: destinationIndexPath.row)
+                
+            default: fatalError("Task is not Designated")
+            
+            }
         
         case 1:
-            let task = taskstodo[sourceIndexPath.row]
-            completedtasks.insert(task, at: destinationIndexPath.row)
-            taskstodo.remove(at: sourceIndexPath.row)
+            switch destinationIndexPath.section {
+                
+            case 0: // Completed Task to Yet to Completed
+                task = taskstodo[sourceIndexPath.row]
+                completedtasks.remove(at: sourceIndexPath.row)
+                taskstodo.insert(task!, at: destinationIndexPath.row)
+                
+            case 1: // Completed Task to Completed Task
+                task = completedtasks[sourceIndexPath.row]
+                completedtasks.remove(at: sourceIndexPath.row)
+                completedtasks.insert(task!, at: destinationIndexPath.row)
+                
+            default: fatalError("Task is not Designated")
+                
+            }
         
         default: fatalError("App did not find destination of cell")
         }
