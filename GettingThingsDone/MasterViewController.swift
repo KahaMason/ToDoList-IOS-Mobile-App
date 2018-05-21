@@ -56,6 +56,8 @@ class MasterViewController: UITableViewController {
     
     @objc func editTask() {
         //print("Editing Task") //<- Debug For Test Button Tap
+        
+        self.tableView.isEditing = !self.tableView.isEditing
     }
 
     // MARK: - Segues
