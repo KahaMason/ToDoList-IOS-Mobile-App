@@ -16,6 +16,7 @@
 		7821FA0720B1382800A222E5 /* GettingThingsDoneUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7821FA0620B1382800A222E5 /* GettingThingsDoneUITests.swift */; };
 		7821FA1520B13BDB00A222E5 /* Task.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7821FA1420B13BDB00A222E5 /* Task.swift */; };
 		7821FA1720B182DB00A222E5 /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7821FA1620B182DB00A222E5 /* DetailViewController.swift */; };
+		7821FA1920B19E5700A222E5 /* DetailViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7821FA1820B19E5700A222E5 /* DetailViewCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +52,7 @@
 		7821FA0820B1382800A222E5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7821FA1420B13BDB00A222E5 /* Task.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Task.swift; sourceTree = "<group>"; };
 		7821FA1620B182DB00A222E5 /* DetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
+		7821FA1820B19E5700A222E5 /* DetailViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailViewCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +106,7 @@
 				7821F9E420B1382700A222E5 /* AppDelegate.swift */,
 				7821F9E620B1382700A222E5 /* MasterViewController.swift */,
 				7821FA1620B182DB00A222E5 /* DetailViewController.swift */,
+				7821FA1820B19E5700A222E5 /* DetailViewCell.swift */,
 				7821FA1420B13BDB00A222E5 /* Task.swift */,
 				7821F9EA20B1382800A222E5 /* Main.storyboard */,
 				7821F9ED20B1382800A222E5 /* Assets.xcassets */,
@@ -267,6 +270,7 @@
 			files = (
 				7821FA1520B13BDB00A222E5 /* Task.swift in Sources */,
 				7821F9E720B1382700A222E5 /* MasterViewController.swift in Sources */,
+				7821FA1920B19E5700A222E5 /* DetailViewCell.swift in Sources */,
 				7821F9E520B1382700A222E5 /* AppDelegate.swift in Sources */,
 				7821FA1720B182DB00A222E5 /* DetailViewController.swift in Sources */,
 			);

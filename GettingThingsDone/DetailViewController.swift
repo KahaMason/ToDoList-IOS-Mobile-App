@@ -8,7 +8,7 @@
 
 import UIKit
 
-class DetailViewController: UITableViewController {
+class DetailViewController: UITableViewController, UITextFieldDelegate {
 
     var sectionheaders = ["Task", "History", "Collaborators"]
     var taskItem: Task?
@@ -59,15 +59,16 @@ class DetailViewController: UITableViewController {
 
     // Data for each cell
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "DetailCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "DetailCell", for: indexPath) as! DetailViewCell
         
         switch indexPath.section {
-            case 0: cell.textLabel?.text = taskItem?.name
+            case 0: cell.detailField.text = taskItem?.name
             
             default: fatalError("Cannot Identify Section Destination of Cell")
         }
         
-        cell.textLabel?.textColor = UIColor.lightGray
+        cell.detailField.textColor = UIColor.lightGray
+        cell.detailField.backgroundColor = UIColor.black
         cell.backgroundColor = UIColor.black
 
         return cell
