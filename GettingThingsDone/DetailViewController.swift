@@ -13,8 +13,11 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
     var sectionheaders = ["Task", "History", "Collaborators"]
     var taskItem: Task?
     
+    var peerToPeer = PeerToPeerManager()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        peerToPeer.delegate = self as? PeerToPeerManagerDelegate
         
         tableView.delegate = self
         tableView.dataSource = self
@@ -43,6 +46,7 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
         tableView.insertRows(at: [indexPath], with: .automatic)
         
         //dump(taskItem?.history) // <- Debug for Task History Array
+        peerToPeer.send(data: (taskItem?.json)!)
     }
     
     // MARK: - TextField Functions
@@ -72,6 +76,8 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
             }
             
             tableView.reloadRows(at: [indexPath!], with: .none)
+            
+            peerToPeer.send(data: (taskItem?.json)!)
         }
     }
 
@@ -139,5 +145,4 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
         // Pass the selected object to the new view controller.
     }
     */
-
 }

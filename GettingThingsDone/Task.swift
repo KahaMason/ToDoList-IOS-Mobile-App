@@ -8,13 +8,15 @@
 
 import Foundation
 
-class Task {
+class Task: Codable {
     var name: String
     var history = [String]()
+    var taskIdentifier: Int
     
-    init(name: String, history: Array<String>) {
+    init(name: String, history: Array<String>, taskIdentifier: Int) {
         self.name = name
         self.history = history
+        self.taskIdentifier = taskIdentifier
     }
 }
 
@@ -28,4 +30,10 @@ func currentdate() -> String {
     let date = formatter.string(from: currentdate)
     
     return date
+}
+
+extension Task {
+    var json: Data {
+        get { return try! JSONEncoder().encode(self) }
+    }
 }

@@ -14,9 +14,12 @@ class MasterViewController: UITableViewController {
     var sectionHeaders = ["YET TO DO", "COMPLETED"]
     var taskstodo = [Task]()
     var completedtasks = [Task]()
+    
+    var peerToPeer = PeerToPeerManager()
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        peerToPeer.delegate = self
         
         view.backgroundColor = UIColor.black
         
@@ -46,7 +49,7 @@ class MasterViewController: UITableViewController {
         
         let creation = currentdate() // Function Referenced in Task.swift
         let tasknumber = (taskstodo.count + completedtasks.count) + 1
-        let newtask = Task(name: "New Task \(tasknumber)", history:["\(creation) Task Created"])
+        let newtask = Task(name: "New Task \(tasknumber)", history:["\(creation) Task Created"], taskIdentifier: taskstodo.count)
         
         taskstodo.insert(newtask, at: 0) // Inserts task into first position of array
         
@@ -58,6 +61,7 @@ class MasterViewController: UITableViewController {
         //print("Editing Task") //<- Debug For Test Button Tap
         
         self.tableView.isEditing = !self.tableView.isEditing
+        navigationItem.leftBarButtonItem?.title = (self.tableView.isEditing) ? "Done" : "Edit"
     }
 
     // MARK: - Segues
@@ -76,7 +80,6 @@ class MasterViewController: UITableViewController {
                 default: fatalError("Could not locate Task Details")
                     
                 }
-                
                 controller.navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
                 controller.navigationItem.leftItemsSupplementBackButton = true
             }
@@ -222,7 +225,7 @@ class MasterViewController: UITableViewController {
     // Setup Navigation - Edit Button | Title | Add Button
     func setupNavigation() {
         navigationItem.title = "Things to Do"
-        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editTask))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Edit", style: .plain, target: self, action: #selector(editTask))
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addTask))
     }
     
@@ -230,10 +233,46 @@ class MasterViewController: UITableViewController {
     func loadsamples() {
         let creation = currentdate() // Function Referenced in Task.swift
         
-        let task1 = Task(name: "New Task 1", history: ["\(creation) Task Created"])
-        let task2 = Task(name: "New Task 2", history: ["\(creation) Task Created"])
-        let task3 = Task(name: "New Task 3", history: ["\(creation) Task Created"])
+        let task1 = Task(name: "New Task 1", history: ["\(creation) Task Created"], taskIdentifier: 1)
+        let task2 = Task(name: "New Task 2", history: ["\(creation) Task Created"], taskIdentifier: 2)
+        let task3 = Task(name: "New Task 3", history: ["\(creation) Task Created"], taskIdentifier: 3)
         
         taskstodo = [task3, task2, task1]
+    }
+}
+
+// Handles Peer-To-Peer Recieving Data
+extension MasterViewController: PeerToPeerManagerDelegate {
+    func manager(manager: PeerToPeerManager, didRecieve data: Data) {
+        
+        let task = try! JSONDecoder().decode(Task.self, from: data)
+        
+        dump(task)
+        
+        // Checks to see if the update matches Task in tasktodo array
+        if taskstodo.count != 0 { // Not Empty
+            for i in 0...(taskstodo.count - 1) {
+                print("taskstodo[\(i)] ID: \(taskstodo[i].taskIdentifier)")
+                if task.taskIdentifier == taskstodo[i].taskIdentifier {
+                    taskstodo[i] = task
+                    print("Task Found at taskstodo[\(i)]")
+                }
+            }
+        }
+        
+        // Checks to see if the update matches Task in completedtasks array
+        if completedtasks.count != 0 { // Not Empty
+            for i in 0...(completedtasks.count - 1) {
+                if task.taskIdentifier == completedtasks[i].taskIdentifier {
+                    completedtasks[i] = task
+                    print("Task found at completedtasks[\(i)]")
+                }
+                print("Checked at completedtasks[\(i)]")
+            }
+        }
+        
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
     }
 }
