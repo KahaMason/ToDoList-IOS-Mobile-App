@@ -12,6 +12,7 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
 
     var sectionheaders = ["Task", "History", "Collaborators"]
     var taskItem: Task?
+    var collaborators = [String]()
     var peerToPeer: PeerToPeerManager?
     
     override func viewDidLoad() {
@@ -70,6 +71,7 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
             
             case 0?: taskItem?.name = textField.text!
             case 1?: taskItem?.history[(indexPath?.row)!] = textField.text!
+            case 2?: collaborators[(indexPath?.row)!] = textField.text!
             default: fatalError("No TextFields Selected")
             
             }
@@ -110,7 +112,7 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
         
         case 0: return 1
         case 1: return (taskItem?.history.count)!
-        case 2: return 0
+        case 2: return collaborators.count
         default: fatalError("Could not determine Number of Rows per Section")
         }
     }
@@ -123,7 +125,7 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
         
         case 0: cell.detailField.text = taskItem?.name
         case 1: cell.detailField.text = taskItem?.history[indexPath.row]
-        case 2: cell.detailField.text = nil
+        case 2: cell.detailField.text = collaborators[indexPath.row]
         default: fatalError("Cannot Identify Section Destination of Cell")
         }
         
@@ -154,6 +156,16 @@ extension DetailViewController : PeerToPeerManagerDelegate {
         if task.taskIdentifier == taskItem?.taskIdentifier {
             taskItem = task
         }
+        
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
+    }
+    
+    func collaboratorDevices(manager: PeerToPeerManager, connectedDevices: [String]) {
+        print("Recieved a New Collaborator on Detail View")
+        
+        self.collaborators = connectedDevices
         
         DispatchQueue.main.async {
             self.tableView.reloadData()

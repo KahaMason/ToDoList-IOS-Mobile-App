@@ -13,6 +13,7 @@ class MasterViewController: UITableViewController {
     var detailViewController: DetailViewController? = nil
     var sectionHeaders = ["YET TO DO", "COMPLETED"]
     var TaskList = MasterList()
+    var collaborators = [String]()
     
     var newID: Int?
     
@@ -59,7 +60,7 @@ class MasterViewController: UITableViewController {
         
         self.newID = taskid
         
-        //peerToPeer.send(data: (TaskList.json))
+        peerToPeer.send(data: TaskList.json)
     }
     
     @objc func editTask() {
@@ -87,6 +88,7 @@ class MasterViewController: UITableViewController {
                 }
                 
                 controller.peerToPeer = peerToPeer
+                controller.collaborators = collaborators
                 controller.navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
                 controller.navigationItem.leftItemsSupplementBackButton = true
             }
@@ -168,6 +170,8 @@ class MasterViewController: UITableViewController {
             }
             
             tableView.deleteRows(at: [indexPath], with: .fade)
+            
+            peerToPeer.send(data: TaskList.json)
         }
     }
     
@@ -194,6 +198,8 @@ class MasterViewController: UITableViewController {
                 TaskList.ToDoList.remove(at: sourceIndexPath.row)
                 TaskList.ToDoList.insert(task!, at: destinationIndexPath.row)
                 
+                peerToPeer.send(data: TaskList.json)
+                
             case 1: // Yet to Do to Completed Tasks
                 history = "\(date) Moved to Completed"
                 TaskList.ToDoList[sourceIndexPath.row].history.insert(history!, at: 0)
@@ -202,7 +208,7 @@ class MasterViewController: UITableViewController {
                 TaskList.ToDoList.remove(at: sourceIndexPath.row)
                 TaskList.CompletedList.insert(task!, at: destinationIndexPath.row)
                 
-                //peerToPeer.send(data: (TaskList.json)!)
+                peerToPeer.send(data: TaskList.json)
                 
             default: fatalError("Task is not Designated")
             
@@ -219,12 +225,14 @@ class MasterViewController: UITableViewController {
                 TaskList.CompletedList.remove(at: sourceIndexPath.row)
                 TaskList.ToDoList.insert(task!, at: destinationIndexPath.row)
                 
-                //peerToPeer.send(data: (TaskList.json)!)
+                peerToPeer.send(data: TaskList.json)
                 
             case 1: // Completed Task to Completed Task
                 task = TaskList.CompletedList[sourceIndexPath.row]
                 TaskList.CompletedList.remove(at: sourceIndexPath.row)
                 TaskList.CompletedList.insert(task!, at: destinationIndexPath.row)
+                
+                peerToPeer.send(data: TaskList.json)
                 
             default: fatalError("Task is not Designated")
                 
@@ -263,46 +271,23 @@ class MasterViewController: UITableViewController {
 
 // Handles Peer-To-Peer Recieving Data
 extension MasterViewController : PeerToPeerManagerDelegate {
+    func collaboratorDevices(manager: PeerToPeerManager, connectedDevices: [String]) {
+        print("Recieved New Collaborator on Master View")
+        
+        self.collaborators = connectedDevices
+        
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
+    }
+    
     func manager(manager: PeerToPeerManager, didRecieve data: Data) {
+//        let recievedArray = try! JSONDecoder().decode(TaskList, from: data)
+//
+//        self.TaskList = recievedArray
         
-        //let recievedTaskList = JSONDecoder().decode(TaskList.self, from: data)
-        
-        
-//            var foundTask = false
-//
-//        dump(task)
-//
-//        // Checks to see if the update matches Task in tasktodo array
-//        if taskstodo.count != 0 { // Not Empty
-//            for i in 0...(taskstodo.count - 1) {
-//                if task.taskIdentifier == taskstodo[i].taskIdentifier {
-//                    taskstodo[i] = task
-//                    foundTask = true
-//                    print("Task found at taskstodo[\(i)]")
-//                }
-//            }
-//        }
-//
-//        // Checks to see if the update matches Task in completedtasks array
-//        if completedtasks.count != 0 { // Not Empty
-//            for i in 0...(completedtasks.count - 1) {
-//                if task.taskIdentifier == completedtasks[i].taskIdentifier {
-//                    completedtasks[i] = task
-//                    foundTask = true
-//                    print("Task found at completedtasks[\(i)]")
-//                }
-//            }
-//        }
-//
-//        // If Task is not found in either section, add task to list
-//        if foundTask == false {
-//            print("Task Not Found, Adding to Task List")
-//            taskstodo.insert(task, at: 0)
-//            self.newID = newID! + 1
-//        }
-//
-//        DispatchQueue.main.async {
-//            self.tableView.reloadData()
-//        }
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
     }
 }
