@@ -14,6 +14,7 @@ class MasterViewController: UITableViewController {
     var sectionHeaders = ["YET TO DO", "COMPLETED"]
     var taskstodo = [Task]()
     var completedtasks = [Task]()
+    var newID: Int?
     
     var peerToPeer = PeerToPeerManager()
 
@@ -48,13 +49,17 @@ class MasterViewController: UITableViewController {
         //print("Adding Task") //<- Debug For Add Button Tap
         
         let creation = currentdate() // Function Referenced in Task.swift
-        let tasknumber = (taskstodo.count + completedtasks.count) + 1
-        let newtask = Task(name: "New Task \(tasknumber)", history:["\(creation) Task Created"], taskIdentifier: taskstodo.count)
+        let taskid = newID! + 1
+        let newtask = Task(name: "New Task \(taskid)", history:["\(creation) Task Created"], taskIdentifier: taskid)
         
         taskstodo.insert(newtask, at: 0) // Inserts task into first position of array
         
         let indexPath = IndexPath(row: 0, section: 0)
         tableView.insertRows(at: [indexPath], with: .automatic)
+        
+        self.newID = taskid
+        
+        peerToPeer.send(data: newtask.json)
     }
     
     @objc func editTask() {
@@ -238,6 +243,7 @@ class MasterViewController: UITableViewController {
         let task3 = Task(name: "New Task 3", history: ["\(creation) Task Created"], taskIdentifier: 3)
         
         taskstodo = [task3, task2, task1]
+        self.newID = 3
     }
 }
 
@@ -246,16 +252,17 @@ extension MasterViewController: PeerToPeerManagerDelegate {
     func manager(manager: PeerToPeerManager, didRecieve data: Data) {
         
         let task = try! JSONDecoder().decode(Task.self, from: data)
+        var foundTask = false
         
         dump(task)
         
         // Checks to see if the update matches Task in tasktodo array
         if taskstodo.count != 0 { // Not Empty
             for i in 0...(taskstodo.count - 1) {
-                print("taskstodo[\(i)] ID: \(taskstodo[i].taskIdentifier)")
                 if task.taskIdentifier == taskstodo[i].taskIdentifier {
                     taskstodo[i] = task
-                    print("Task Found at taskstodo[\(i)]")
+                    foundTask = true
+                    print("Task found at taskstodo[\(i)]")
                 }
             }
         }
@@ -265,10 +272,18 @@ extension MasterViewController: PeerToPeerManagerDelegate {
             for i in 0...(completedtasks.count - 1) {
                 if task.taskIdentifier == completedtasks[i].taskIdentifier {
                     completedtasks[i] = task
+                    foundTask = true
                     print("Task found at completedtasks[\(i)]")
                 }
-                print("Checked at completedtasks[\(i)]")
             }
+        }
+        
+        // If Task is not found in either section, add task to list
+        if foundTask == false {
+            print("Task Not Found, Adding to Task List")
+            taskstodo.insert(task, at: 0)
+            let indexPath = IndexPath(row: 0, section: 0)
+            tableView.insertRows(at: [indexPath], with: .automatic)
         }
         
         DispatchQueue.main.async {
