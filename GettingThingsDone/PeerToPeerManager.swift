@@ -17,28 +17,12 @@ class PeerToPeerManager: NSObject {
     
     private let serviceType = "Task-Exchange"
     
-    var delegate: PeerToPeerManagerDelegate?
-    
     private let peerID = MCPeerID(displayName: UIDevice.current.name)
+    
     private let serviceAdvertiser: MCNearbyServiceAdvertiser
     private let serviceBrowser: MCNearbyServiceBrowser
     
-    override init() {
-        serviceAdvertiser = MCNearbyServiceAdvertiser(peer: peerID, discoveryInfo: nil, serviceType: serviceType)
-        serviceBrowser = MCNearbyServiceBrowser(peer: peerID, serviceType: serviceType)
-        
-        super.init()
-        
-        serviceAdvertiser.delegate = self
-        serviceAdvertiser.startAdvertisingPeer()
-        serviceBrowser.delegate = self
-        serviceBrowser.startBrowsingForPeers()
-    }
-    
-    deinit {
-        serviceAdvertiser.stopAdvertisingPeer()
-        serviceBrowser.stopBrowsingForPeers()
-    }
+    var delegate: PeerToPeerManagerDelegate?
     
     lazy var session: MCSession = {
         let session = MCSession(peer: self.peerID, securityIdentity: nil, encryptionPreference: .required)
@@ -46,14 +30,33 @@ class PeerToPeerManager: NSObject {
         return session
     }()
     
+    override init() {
+        self.serviceAdvertiser = MCNearbyServiceAdvertiser(peer: peerID, discoveryInfo: nil, serviceType: serviceType)
+        self.serviceBrowser = MCNearbyServiceBrowser(peer: peerID, serviceType: serviceType)
+        
+        super.init()
+        
+        self.serviceAdvertiser.delegate = self
+        self.serviceAdvertiser.startAdvertisingPeer()
+        self.serviceBrowser.delegate = self
+        self.serviceBrowser.startBrowsingForPeers()
+    }
+    
     func send(data: Data) {
-        guard !session.connectedPeers.isEmpty else { return }
-        do {
-            try session.send(data, toPeers: session.connectedPeers, with: .reliable)
+        print("sentData: \(data) to \(session.connectedPeers.count) peers")
+        if session.connectedPeers.count > 0 {
+            do {
+                try self.session.send(data, toPeers: session.connectedPeers, with: .reliable)
+            }
+            catch {
+                print("Error for sending: \(error)")
+            }
         }
-        catch {
-            print("Error for sending: \(error)")
-        }
+    }
+    
+    deinit {
+        self.serviceAdvertiser.stopAdvertisingPeer()
+        self.serviceBrowser.stopBrowsingForPeers()
     }
 }
 
@@ -65,7 +68,7 @@ extension PeerToPeerManager: MCNearbyServiceAdvertiserDelegate {
     
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID, withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {
         print("didRecieveInvitationFromPeer \(peerID)")
-        invitationHandler(true, session)
+        invitationHandler(true, self.session)
     }
 }
 
@@ -78,7 +81,7 @@ extension PeerToPeerManager: MCNearbyServiceBrowserDelegate {
     func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String : String]?) {
         print("foundPeer: \(peerID)")
         print("invitingPeer: \(peerID)")
-        browser.invitePeer(peerID, to: session, withContext: nil, timeout: 10)
+        browser.invitePeer(peerID, to: self.session, withContext: nil, timeout: 10)
     }
     
     func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {

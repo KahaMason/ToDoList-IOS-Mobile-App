@@ -12,12 +12,11 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
 
     var sectionheaders = ["Task", "History", "Collaborators"]
     var taskItem: Task?
-    
-    var peerToPeer = PeerToPeerManager()
+    var peerToPeer: PeerToPeerManager?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        peerToPeer.delegate = self as? PeerToPeerManagerDelegate
+        peerToPeer?.delegate = self
         
         tableView.delegate = self
         tableView.dataSource = self
@@ -46,7 +45,7 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
         tableView.insertRows(at: [indexPath], with: .automatic)
         
         //dump(taskItem?.history) // <- Debug for Task History Array
-        peerToPeer.send(data: (taskItem?.json)!)
+        peerToPeer?.send(data: (taskItem?.json)!)
     }
     
     // MARK: - TextField Functions
@@ -77,7 +76,7 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
             
             tableView.reloadRows(at: [indexPath!], with: .none)
             
-            peerToPeer.send(data: (taskItem?.json)!)
+            peerToPeer?.send(data: (taskItem?.json)!)
         }
     }
 
@@ -145,4 +144,19 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
         // Pass the selected object to the new view controller.
     }
     */
+}
+
+extension DetailViewController : PeerToPeerManagerDelegate {
+    func manager(manager: PeerToPeerManager, didRecieve data: Data) {
+        
+        let task = try! JSONDecoder().decode(Task.self, from: data)
+        
+        if task.taskIdentifier == taskItem?.taskIdentifier {
+            taskItem = task
+        }
+        
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
+    }
 }

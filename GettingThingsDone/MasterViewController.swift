@@ -85,6 +85,8 @@ class MasterViewController: UITableViewController {
                 default: fatalError("Could not locate Task Details")
                     
                 }
+                
+                controller.peerToPeer = peerToPeer
                 controller.navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
                 controller.navigationItem.leftItemsSupplementBackButton = true
             }
@@ -193,6 +195,8 @@ class MasterViewController: UITableViewController {
                 taskstodo.remove(at: sourceIndexPath.row)
                 completedtasks.insert(task!, at: destinationIndexPath.row)
                 
+                peerToPeer.send(data: (task?.json)!)
+                
             default: fatalError("Task is not Designated")
             
             }
@@ -207,6 +211,8 @@ class MasterViewController: UITableViewController {
                 task = completedtasks[sourceIndexPath.row]
                 completedtasks.remove(at: sourceIndexPath.row)
                 taskstodo.insert(task!, at: destinationIndexPath.row)
+                
+                peerToPeer.send(data: (task?.json)!)
                 
             case 1: // Completed Task to Completed Task
                 task = completedtasks[sourceIndexPath.row]
@@ -248,7 +254,7 @@ class MasterViewController: UITableViewController {
 }
 
 // Handles Peer-To-Peer Recieving Data
-extension MasterViewController: PeerToPeerManagerDelegate {
+extension MasterViewController : PeerToPeerManagerDelegate {
     func manager(manager: PeerToPeerManager, didRecieve data: Data) {
         
         let task = try! JSONDecoder().decode(Task.self, from: data)
@@ -282,11 +288,14 @@ extension MasterViewController: PeerToPeerManagerDelegate {
         if foundTask == false {
             print("Task Not Found, Adding to Task List")
             taskstodo.insert(task, at: 0)
-            let indexPath = IndexPath(row: 0, section: 0)
-            tableView.insertRows(at: [indexPath], with: .automatic)
         }
         
         DispatchQueue.main.async {
+            if foundTask == false {
+                let indexPath = IndexPath(row: 0, section: 0)
+                self.tableView.insertRows(at: [indexPath], with: .automatic)
+            }
+            
             self.tableView.reloadData()
         }
     }
