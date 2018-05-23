@@ -8,6 +8,11 @@
 
 import Foundation
 
+class MasterList: Codable {
+    var ToDoList = [Task]()
+    var CompletedList = [Task]()
+}
+
 class Task: Codable {
     var name: String
     var history = [String]()
@@ -30,6 +35,12 @@ func currentdate() -> String {
     let date = formatter.string(from: currentdate)
     
     return date
+}
+
+extension MasterList {
+    var json: Data {
+        get { return try! JSONEncoder().encode(self) }
+    }
 }
 
 extension Task {

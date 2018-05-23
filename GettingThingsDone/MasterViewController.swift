@@ -12,8 +12,8 @@ class MasterViewController: UITableViewController {
 
     var detailViewController: DetailViewController? = nil
     var sectionHeaders = ["YET TO DO", "COMPLETED"]
-    var taskstodo = [Task]()
-    var completedtasks = [Task]()
+    var TaskList = MasterList()
+    
     var newID: Int?
     
     var peerToPeer = PeerToPeerManager()
@@ -47,19 +47,19 @@ class MasterViewController: UITableViewController {
     
     @objc func addTask() {
         //print("Adding Task") //<- Debug For Add Button Tap
-        
         let creation = currentdate() // Function Referenced in Task.swift
+        let taskNumber = (TaskList.ToDoList.count) + 1
         let taskid = newID! + 1
-        let newtask = Task(name: "New Task \(taskid)", history:["\(creation) Task Created"], taskIdentifier: taskid)
+        let newtask = Task(name: "New Task \(taskNumber)", history:["\(creation) Task Created"], taskIdentifier: taskid)
         
-        taskstodo.insert(newtask, at: 0) // Inserts task into first position of array
+        TaskList.ToDoList.insert(newtask, at: 0) // Inserts task into first position of array
         
         let indexPath = IndexPath(row: 0, section: 0)
         tableView.insertRows(at: [indexPath], with: .automatic)
         
         self.newID = taskid
         
-        peerToPeer.send(data: newtask.json)
+        //peerToPeer.send(data: (TaskList.json))
     }
     
     @objc func editTask() {
@@ -80,8 +80,8 @@ class MasterViewController: UITableViewController {
                 
                 switch indexPath.section {
                     
-                case 0: controller.taskItem = taskstodo[indexPath.row]
-                case 1: controller.taskItem = completedtasks[indexPath.row]
+                case 0: controller.taskItem = TaskList.ToDoList[indexPath.row]
+                case 1: controller.taskItem = TaskList.CompletedList[indexPath.row]
                 default: fatalError("Could not locate Task Details")
                     
                 }
@@ -121,8 +121,8 @@ class MasterViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         
-        case 0: return taskstodo.count
-        case 1: return completedtasks.count
+        case 0: return (TaskList.ToDoList.count)
+        case 1: return 0
         default: fatalError("Could not find Number of Rows for Section")
         }
     }
@@ -134,11 +134,11 @@ class MasterViewController: UITableViewController {
         switch indexPath.section {
         
         case 0:
-            let task = taskstodo[indexPath.row]
+            let task = TaskList.ToDoList[indexPath.row]
             cell.textLabel?.text = task.name
         
         case 1:
-            let task = completedtasks[indexPath.row]
+            let task = TaskList.CompletedList[indexPath.row]
             cell.textLabel?.text = task.name
             
         default: fatalError("Could not locate Cell Data")
@@ -159,7 +159,14 @@ class MasterViewController: UITableViewController {
     // Editing Functions
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            taskstodo.remove(at: indexPath.row)
+            switch indexPath.section {
+            
+            case 0: TaskList.ToDoList.remove(at: indexPath.row)
+            case 1: TaskList.CompletedList.remove(at: indexPath.row)
+            default: fatalError("Deleted Row Entry not found in TaskList")
+            
+            }
+            
             tableView.deleteRows(at: [indexPath], with: .fade)
         }
     }
@@ -183,19 +190,19 @@ class MasterViewController: UITableViewController {
             switch destinationIndexPath.section {
             
             case 0: // Yet to Do to Yet to Do
-                task = taskstodo[sourceIndexPath.row]
-                taskstodo.remove(at: sourceIndexPath.row)
-                taskstodo.insert(task!, at: destinationIndexPath.row)
+                task = TaskList.ToDoList[sourceIndexPath.row]
+                TaskList.ToDoList.remove(at: sourceIndexPath.row)
+                TaskList.ToDoList.insert(task!, at: destinationIndexPath.row)
                 
             case 1: // Yet to Do to Completed Tasks
                 history = "\(date) Moved to Completed"
-                taskstodo[sourceIndexPath.row].history.insert(history!, at: 0)
+                TaskList.ToDoList[sourceIndexPath.row].history.insert(history!, at: 0)
                 
-                task = taskstodo[sourceIndexPath.row]
-                taskstodo.remove(at: sourceIndexPath.row)
-                completedtasks.insert(task!, at: destinationIndexPath.row)
+                task = TaskList.ToDoList[sourceIndexPath.row]
+                TaskList.ToDoList.remove(at: sourceIndexPath.row)
+                TaskList.CompletedList.insert(task!, at: destinationIndexPath.row)
                 
-                peerToPeer.send(data: (task?.json)!)
+                //peerToPeer.send(data: (TaskList.json)!)
                 
             default: fatalError("Task is not Designated")
             
@@ -206,18 +213,18 @@ class MasterViewController: UITableViewController {
                 
             case 0: // Completed Task to Yet to Do
                 history = ("\(date) Moved to Yet To Do")
-                completedtasks[sourceIndexPath.row].history.insert(history!, at: 0)
+                TaskList.CompletedList[sourceIndexPath.row].history.insert(history!, at: 0)
                 
-                task = completedtasks[sourceIndexPath.row]
-                completedtasks.remove(at: sourceIndexPath.row)
-                taskstodo.insert(task!, at: destinationIndexPath.row)
+                task = TaskList.CompletedList[sourceIndexPath.row]
+                TaskList.CompletedList.remove(at: sourceIndexPath.row)
+                TaskList.ToDoList.insert(task!, at: destinationIndexPath.row)
                 
-                peerToPeer.send(data: (task?.json)!)
+                //peerToPeer.send(data: (TaskList.json)!)
                 
             case 1: // Completed Task to Completed Task
-                task = completedtasks[sourceIndexPath.row]
-                completedtasks.remove(at: sourceIndexPath.row)
-                completedtasks.insert(task!, at: destinationIndexPath.row)
+                task = TaskList.CompletedList[sourceIndexPath.row]
+                TaskList.CompletedList.remove(at: sourceIndexPath.row)
+                TaskList.CompletedList.insert(task!, at: destinationIndexPath.row)
                 
             default: fatalError("Task is not Designated")
                 
@@ -248,7 +255,8 @@ class MasterViewController: UITableViewController {
         let task2 = Task(name: "New Task 2", history: ["\(creation) Task Created"], taskIdentifier: 2)
         let task3 = Task(name: "New Task 3", history: ["\(creation) Task Created"], taskIdentifier: 3)
         
-        taskstodo = [task3, task2, task1]
+        TaskList.ToDoList = [task3, task2, task1]
+        
         self.newID = 3
     }
 }
@@ -257,46 +265,44 @@ class MasterViewController: UITableViewController {
 extension MasterViewController : PeerToPeerManagerDelegate {
     func manager(manager: PeerToPeerManager, didRecieve data: Data) {
         
-        let task = try! JSONDecoder().decode(Task.self, from: data)
-        var foundTask = false
+        //let recievedTaskList = JSONDecoder().decode(TaskList.self, from: data)
         
-        dump(task)
         
-        // Checks to see if the update matches Task in tasktodo array
-        if taskstodo.count != 0 { // Not Empty
-            for i in 0...(taskstodo.count - 1) {
-                if task.taskIdentifier == taskstodo[i].taskIdentifier {
-                    taskstodo[i] = task
-                    foundTask = true
-                    print("Task found at taskstodo[\(i)]")
-                }
-            }
-        }
-        
-        // Checks to see if the update matches Task in completedtasks array
-        if completedtasks.count != 0 { // Not Empty
-            for i in 0...(completedtasks.count - 1) {
-                if task.taskIdentifier == completedtasks[i].taskIdentifier {
-                    completedtasks[i] = task
-                    foundTask = true
-                    print("Task found at completedtasks[\(i)]")
-                }
-            }
-        }
-        
-        // If Task is not found in either section, add task to list
-        if foundTask == false {
-            print("Task Not Found, Adding to Task List")
-            taskstodo.insert(task, at: 0)
-        }
-        
-        DispatchQueue.main.async {
-            if foundTask == false {
-                let indexPath = IndexPath(row: 0, section: 0)
-                self.tableView.insertRows(at: [indexPath], with: .automatic)
-            }
-            
-            self.tableView.reloadData()
-        }
+//            var foundTask = false
+//
+//        dump(task)
+//
+//        // Checks to see if the update matches Task in tasktodo array
+//        if taskstodo.count != 0 { // Not Empty
+//            for i in 0...(taskstodo.count - 1) {
+//                if task.taskIdentifier == taskstodo[i].taskIdentifier {
+//                    taskstodo[i] = task
+//                    foundTask = true
+//                    print("Task found at taskstodo[\(i)]")
+//                }
+//            }
+//        }
+//
+//        // Checks to see if the update matches Task in completedtasks array
+//        if completedtasks.count != 0 { // Not Empty
+//            for i in 0...(completedtasks.count - 1) {
+//                if task.taskIdentifier == completedtasks[i].taskIdentifier {
+//                    completedtasks[i] = task
+//                    foundTask = true
+//                    print("Task found at completedtasks[\(i)]")
+//                }
+//            }
+//        }
+//
+//        // If Task is not found in either section, add task to list
+//        if foundTask == false {
+//            print("Task Not Found, Adding to Task List")
+//            taskstodo.insert(task, at: 0)
+//            self.newID = newID! + 1
+//        }
+//
+//        DispatchQueue.main.async {
+//            self.tableView.reloadData()
+//        }
     }
 }
