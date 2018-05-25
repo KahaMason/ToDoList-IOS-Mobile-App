@@ -14,6 +14,7 @@ class MasterViewController: UITableViewController {
     var sectionHeaders = ["YET TO DO", "COMPLETED"]
     var TaskList = MasterList()
     var collaborators = [String]()
+    var indexPath: IndexPath?
     
     var newID: Int?
     
@@ -36,6 +37,11 @@ class MasterViewController: UITableViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         clearsSelectionOnViewWillAppear = splitViewController!.isCollapsed
+        
+        if indexPath != nil { // Reloads Row after returning from editing in DetailView
+            super.tableView.reloadRows(at: [self.indexPath!], with: .none)
+        }
+        
         super.viewWillAppear(animated)
     }
 
@@ -91,6 +97,8 @@ class MasterViewController: UITableViewController {
                 controller.collaborators = collaborators
                 controller.navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
                 controller.navigationItem.leftItemsSupplementBackButton = true
+                
+                self.indexPath = indexPath  // Used to reference the indexPath of the target cell for reload on viewWillAppear
             }
         }
     }
