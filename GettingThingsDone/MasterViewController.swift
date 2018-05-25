@@ -14,9 +14,7 @@ class MasterViewController: UITableViewController {
     var sectionHeaders = ["YET TO DO", "COMPLETED"]
     var TaskList = MasterList()
     var collaborators = [String]()
-    var indexPath: IndexPath?
-    
-    var newID: Int?
+    var indexPath: IndexPath? // Used to Store all changes to tableView
     
     var peerToPeer = PeerToPeerManager()
 
@@ -37,11 +35,6 @@ class MasterViewController: UITableViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         clearsSelectionOnViewWillAppear = splitViewController!.isCollapsed
-        
-        if indexPath != nil { // Reloads Row after returning from editing in DetailView
-            super.tableView.reloadRows(at: [self.indexPath!], with: .none)
-        }
-        
         super.viewWillAppear(animated)
     }
 
@@ -55,18 +48,17 @@ class MasterViewController: UITableViewController {
     @objc func addTask() {
         //print("Adding Task") //<- Debug For Add Button Tap
         let creation = currentdate() // Function Referenced in Task.swift
-        let taskNumber = (TaskList.ToDoList.count) + 1
-        let taskid = newID! + 1
-        let newtask = Task(name: "New Task \(taskNumber)", history:["\(creation) Task Created"], taskIdentifier: taskid)
+        let taskNumber = TaskList.ToDoList.count + 1
+        let taskID = TaskList.ToDoList.count + TaskList.CompletedList.count + 1
+        
+        let newtask = Task(name: "New Task \(taskNumber)", history:["\(creation) Task Created"], taskIdentifier: taskID)
         
         TaskList.ToDoList.insert(newtask, at: 0) // Inserts task into first position of array
         
         let indexPath = IndexPath(row: 0, section: 0)
         tableView.insertRows(at: [indexPath], with: .automatic)
         
-        self.newID = taskid
-        
-        peerToPeer.send(data: TaskList.json)
+        peerToPeer.send(data: TaskList.json) // Sends updates when a new task is added
     }
     
     @objc func editTask() {
@@ -74,6 +66,11 @@ class MasterViewController: UITableViewController {
         
         self.tableView.isEditing = !self.tableView.isEditing
         navigationItem.leftBarButtonItem?.title = (self.tableView.isEditing) ? "Done" : "Edit"
+        
+        // Send table updates to peers once editing tables is finished
+        if self.tableView.isEditing == false {
+            peerToPeer.send(data: TaskList.json) // Handles editing updates to peers
+        }
     }
 
     // MARK: - Segues
@@ -93,7 +90,7 @@ class MasterViewController: UITableViewController {
                     
                 }
                 
-                controller.peerToPeer = peerToPeer
+                //controller.peerToPeer = peerToPeer
                 controller.collaborators = collaborators
                 controller.navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
                 controller.navigationItem.leftItemsSupplementBackButton = true
@@ -179,7 +176,7 @@ class MasterViewController: UITableViewController {
             
             tableView.deleteRows(at: [indexPath], with: .fade)
             
-            peerToPeer.send(data: TaskList.json)
+            peerToPeer.send(data: TaskList.json) // Send update when deleted a task
         }
     }
     
@@ -206,7 +203,7 @@ class MasterViewController: UITableViewController {
                 TaskList.ToDoList.remove(at: sourceIndexPath.row)
                 TaskList.ToDoList.insert(task!, at: destinationIndexPath.row)
                 
-                peerToPeer.send(data: TaskList.json)
+                peerToPeer.send(data: TaskList.json) // Send Update When Moving a Task
                 
             case 1: // Yet to Do to Completed Tasks
                 history = "\(date) Moved to Completed"
@@ -216,8 +213,7 @@ class MasterViewController: UITableViewController {
                 TaskList.ToDoList.remove(at: sourceIndexPath.row)
                 TaskList.CompletedList.insert(task!, at: destinationIndexPath.row)
                 
-                self.indexPath = destinationIndexPath
-                peerToPeer.send(data: TaskList.json)
+                peerToPeer.send(data: TaskList.json) // Send Update When Moving a Task
                 
             default: fatalError("Task is not Designated")
             
@@ -234,15 +230,14 @@ class MasterViewController: UITableViewController {
                 TaskList.CompletedList.remove(at: sourceIndexPath.row)
                 TaskList.ToDoList.insert(task!, at: destinationIndexPath.row)
                 
-                self.indexPath = destinationIndexPath
-                peerToPeer.send(data: TaskList.json)
+                peerToPeer.send(data: TaskList.json) // Send update when Moving a Task
                 
             case 1: // Completed Task to Completed Task
                 task = TaskList.CompletedList[sourceIndexPath.row]
                 TaskList.CompletedList.remove(at: sourceIndexPath.row)
                 TaskList.CompletedList.insert(task!, at: destinationIndexPath.row)
                 
-                peerToPeer.send(data: TaskList.json)
+                peerToPeer.send(data: TaskList.json) // Send Update When Moving A Task
                 
             default: fatalError("Task is not Designated")
                 
@@ -274,8 +269,6 @@ class MasterViewController: UITableViewController {
         let task3 = Task(name: "New Task 3", history: ["\(creation) Task Created"], taskIdentifier: 3)
         
         TaskList.ToDoList = [task3, task2, task1]
-        
-        self.newID = 3
     }
 }
 
@@ -303,17 +296,24 @@ extension MasterViewController : PeerToPeerManagerDelegate {
         
         // Catches data if the send data is an update to a specified task
         if recievedItem != nil {
-            if self.indexPath?.section == 0 {
-                TaskList.ToDoList[(indexPath?.row)!] = recievedItem!
+            
+            // Updates item if item is located in the Yet to Do section
+            for i in 0...TaskList.ToDoList.count - 1 {
+                if TaskList.ToDoList[i].taskIdentifier == recievedItem?.taskIdentifier {
+                    TaskList.ToDoList[i] = recievedItem!
+                }
             }
             
-            else if self.indexPath?.section == 1 {
-                TaskList.CompletedList[(indexPath?.row)!] = recievedItem!
+            // Updates item if item is located in the Completed Section
+            for i in 0...TaskList.CompletedList.count - 1 {
+                if TaskList.CompletedList[i].taskIdentifier == recievedItem?.taskIdentifier {
+                    TaskList.CompletedList[i] = recievedItem!
+                }
             }
         }
         
         DispatchQueue.main.async {
-            self.tableView.reloadData()
+            self.tableView.reloadData() // Reforms TableView to display update changes
         }
     }
 }

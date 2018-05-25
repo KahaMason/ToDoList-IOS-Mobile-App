@@ -16,7 +16,7 @@ protocol PeerToPeerManagerDelegate: AnyObject {
 
 class PeerToPeerManager: NSObject {
     
-    private let serviceType = "Task-Exchange"
+    private let TaskServiceType = "Task-Exchange"
     
     private let peerID = MCPeerID(displayName: UIDevice.current.name)
     
@@ -32,8 +32,8 @@ class PeerToPeerManager: NSObject {
     }()
     
     override init() {
-        self.serviceAdvertiser = MCNearbyServiceAdvertiser(peer: peerID, discoveryInfo: nil, serviceType: serviceType)
-        self.serviceBrowser = MCNearbyServiceBrowser(peer: peerID, serviceType: serviceType)
+        self.serviceAdvertiser = MCNearbyServiceAdvertiser(peer: peerID, discoveryInfo: nil, serviceType: TaskServiceType)
+        self.serviceBrowser = MCNearbyServiceBrowser(peer: peerID, serviceType: TaskServiceType)
         
         super.init()
         

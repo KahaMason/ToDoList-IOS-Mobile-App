@@ -136,18 +136,9 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
 
         return cell
     }
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
 }
 
+// Handles Peer To Peer Recieving Data and Changes
 extension DetailViewController : PeerToPeerManagerDelegate {
     func manager(manager: PeerToPeerManager, didRecieve data: Data) {
         
@@ -162,17 +153,17 @@ extension DetailViewController : PeerToPeerManagerDelegate {
         }
         
         DispatchQueue.main.async {
-            self.tableView.reloadData()
+            self.tableView.reloadData() // Reform tableView to display update
         }
     }
     
     func collaboratorDevices(manager: PeerToPeerManager, connectedDevices: [String]) {
         print("Recieved a New Collaborator on Detail View")
         
-        self.collaborators = connectedDevices
+        self.collaborators = connectedDevices // Fill Collaboraters array as devices connect
         
         DispatchQueue.main.async {
-            self.tableView.reloadData()
+            self.tableView.reloadData() // Reform tableView to display updates
         }
     }
 }
