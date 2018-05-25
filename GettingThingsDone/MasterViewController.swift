@@ -216,6 +216,7 @@ class MasterViewController: UITableViewController {
                 TaskList.ToDoList.remove(at: sourceIndexPath.row)
                 TaskList.CompletedList.insert(task!, at: destinationIndexPath.row)
                 
+                self.indexPath = destinationIndexPath
                 peerToPeer.send(data: TaskList.json)
                 
             default: fatalError("Task is not Designated")
@@ -233,6 +234,7 @@ class MasterViewController: UITableViewController {
                 TaskList.CompletedList.remove(at: sourceIndexPath.row)
                 TaskList.ToDoList.insert(task!, at: destinationIndexPath.row)
                 
+                self.indexPath = destinationIndexPath
                 peerToPeer.send(data: TaskList.json)
                 
             case 1: // Completed Task to Completed Task
@@ -290,9 +292,25 @@ extension MasterViewController : PeerToPeerManagerDelegate {
     }
     
     func manager(manager: PeerToPeerManager, didRecieve data: Data) {
-//        let recievedArray = try! JSONDecoder().decode(TaskList, from: data)
-//
-//        self.TaskList = recievedArray
+        
+        let recievedArray = try? JSONDecoder().decode(MasterList.self, from: data) // Catches Array Data
+        let recievedItem = try? JSONDecoder().decode(Task.self, from: data) // Catches Task Data
+        
+        // Catches data if the send data is an update to the array configuration
+        if recievedArray != nil {
+            self.TaskList = recievedArray!
+        }
+        
+        // Catches data if the send data is an update to a specified task
+        if recievedItem != nil {
+            if self.indexPath?.section == 0 {
+                TaskList.ToDoList[(indexPath?.row)!] = recievedItem!
+            }
+            
+            else if self.indexPath?.section == 1 {
+                TaskList.CompletedList[(indexPath?.row)!] = recievedItem!
+            }
+        }
         
         DispatchQueue.main.async {
             self.tableView.reloadData()

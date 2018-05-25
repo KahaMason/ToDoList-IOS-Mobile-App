@@ -151,10 +151,14 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
 extension DetailViewController : PeerToPeerManagerDelegate {
     func manager(manager: PeerToPeerManager, didRecieve data: Data) {
         
-        let task = try! JSONDecoder().decode(Task.self, from: data)
+        // Catches information if the information sent is Task information of current task
+        let task = try? JSONDecoder().decode(Task.self, from: data)
         
-        if task.taskIdentifier == taskItem?.taskIdentifier {
-            taskItem = task
+        // If there is no information sent about current task, don't update
+        if task != nil {
+            if task?.taskIdentifier == taskItem?.taskIdentifier {
+                taskItem = task
+            }
         }
         
         DispatchQueue.main.async {
