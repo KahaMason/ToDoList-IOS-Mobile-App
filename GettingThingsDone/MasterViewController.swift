@@ -14,7 +14,6 @@ class MasterViewController: UITableViewController {
     var sectionHeaders = ["YET TO DO", "COMPLETED"]
     var TaskList = MasterList()
     var collaborators = [String]()
-    var indexPath: IndexPath? // Used to Store all changes to tableView
     
     var peerToPeer = PeerToPeerManager()
 
@@ -34,6 +33,7 @@ class MasterViewController: UITableViewController {
     }
 
     override func viewWillAppear(_ animated: Bool) {
+        peerToPeer.delegate = self // Return PeerToPeerManagerDelegate Back to MasterViewController when viewing TaskList
         clearsSelectionOnViewWillAppear = splitViewController!.isCollapsed
         super.viewWillAppear(animated)
     }
@@ -43,13 +43,20 @@ class MasterViewController: UITableViewController {
         // Dispose of any resources that can be recreated.
     }
     
-    // MARK: - OBJC Functions
+    // MARK: - Functions
+
+    // Setup Navigation - Edit Button | Title | Add Button
+    func setupNavigation() {
+        navigationItem.title = "Things to Do"
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Edit", style: .plain, target: self, action: #selector(editTask))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addTask))
+    }
     
+    // Add New Tasks
     @objc func addTask() {
-        //print("Adding Task") //<- Debug For Add Button Tap
         let creation = currentdate() // Function Referenced in Task.swift
         let taskNumber = TaskList.ToDoList.count + 1
-        let taskID = TaskList.ToDoList.count + TaskList.CompletedList.count + 1
+        let taskID = generateID()
         
         let newtask = Task(name: "New Task \(taskNumber)", history:["\(creation) Task Created"], taskIdentifier: taskID)
         
@@ -61,16 +68,39 @@ class MasterViewController: UITableViewController {
         peerToPeer.send(data: TaskList.json) // Sends updates when a new task is added
     }
     
+    // Enable Task Editing
     @objc func editTask() {
-        //print("Editing Task") //<- Debug For Test Button Tap
-        
         self.tableView.isEditing = !self.tableView.isEditing
         navigationItem.leftBarButtonItem?.title = (self.tableView.isEditing) ? "Done" : "Edit"
+    }
+    
+    // Loads Samples
+    func loadsamples() {
+        let creation = currentdate() // Function Referenced in Task.swift
         
-        // Send table updates to peers once editing tables is finished
-        if self.tableView.isEditing == false {
-            peerToPeer.send(data: TaskList.json) // Handles editing updates to peers
+        let task1 = Task(name: "New Task 1", history: ["\(creation) Task Created"], taskIdentifier: 1)
+        let task2 = Task(name: "New Task 2", history: ["\(creation) Task Created"], taskIdentifier: 2)
+        let task3 = Task(name: "New Task 3", history: ["\(creation) Task Created"], taskIdentifier: 3)
+        
+        TaskList.ToDoList = [task3, task2, task1]
+    }
+    
+    // Creates Unique ID
+    func generateID() -> Int {
+        var newID = arc4random_uniform(10000) // Generates random number between 0 - 10000 for a Unique Identifier
+        
+        // Checks ToDoList Tasks for any UniqueID Conflicts
+        if TaskList.ToDoList.count != 0 {
+            for i in 0...TaskList.ToDoList.count - 1 {
+                if TaskList.ToDoList[i].taskIdentifier == newID { newID = UInt32(generateID()) }} // Re-generate new ID
         }
+        
+        // Checks CompletedList Task for any UniqueID Conflicts
+        if TaskList.CompletedList.count != 0 {
+            for i in 0...TaskList.CompletedList.count - 1 {
+                if TaskList.CompletedList[i].taskIdentifier == newID { newID = UInt32(generateID()) }} // Re-generate new ID
+        }
+        return Int(newID)
     }
 
     // MARK: - Segues
@@ -81,7 +111,7 @@ class MasterViewController: UITableViewController {
         if segue.identifier == "showDetail" {
             if let indexPath = tableView.indexPathForSelectedRow {
                 let controller = (segue.destination as! UINavigationController).topViewController as! DetailViewController
-                
+                controller.delegate = self
                 switch indexPath.section {
                     
                 case 0: controller.taskItem = TaskList.ToDoList[indexPath.row]
@@ -90,12 +120,10 @@ class MasterViewController: UITableViewController {
                     
                 }
                 
-                //controller.peerToPeer = peerToPeer
+                controller.peerToPeer = peerToPeer
                 controller.collaborators = collaborators
                 controller.navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
                 controller.navigationItem.leftItemsSupplementBackButton = true
-                
-                self.indexPath = indexPath  // Used to reference the indexPath of the target cell for reload on viewWillAppear
             }
         }
     }
@@ -129,7 +157,7 @@ class MasterViewController: UITableViewController {
         switch section {
         
         case 0: return (TaskList.ToDoList.count)
-        case 1: return 0
+        case 1: return (TaskList.CompletedList.count)
         default: fatalError("Could not find Number of Rows for Section")
         }
     }
@@ -167,12 +195,9 @@ class MasterViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             switch indexPath.section {
-            
             case 0: TaskList.ToDoList.remove(at: indexPath.row)
             case 1: TaskList.CompletedList.remove(at: indexPath.row)
-            default: fatalError("Deleted Row Entry not found in TaskList")
-            
-            }
+            default: fatalError("Deleted Row Entry not found in TaskList")}
             
             tableView.deleteRows(at: [indexPath], with: .fade)
             
@@ -187,17 +212,14 @@ class MasterViewController: UITableViewController {
     
     // Controlls Row Movement and Updates the Array Containers
     override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-        //print("Moving Cell from: \(sourceIndexPath) to: \(destinationIndexPath)")
-        
         var task: Task?
         let date = currentdate()
         var history: String?
         
         switch sourceIndexPath.section {
-        
         case 0:
             switch destinationIndexPath.section {
-            
+                
             case 0: // Yet to Do to Yet to Do
                 task = TaskList.ToDoList[sourceIndexPath.row]
                 TaskList.ToDoList.remove(at: sourceIndexPath.row)
@@ -215,10 +237,8 @@ class MasterViewController: UITableViewController {
                 
                 peerToPeer.send(data: TaskList.json) // Send Update When Moving a Task
                 
-            default: fatalError("Task is not Designated")
+            default: fatalError("Task is not Designated")}
             
-            }
-        
         case 1:
             switch destinationIndexPath.section {
                 
@@ -239,75 +259,121 @@ class MasterViewController: UITableViewController {
                 
                 peerToPeer.send(data: TaskList.json) // Send Update When Moving A Task
                 
-            default: fatalError("Task is not Designated")
-                
-            }
-        
-        default: fatalError("App did not find destination of cell")
-        }
-        
-        // Debug - Shows the ordering of array entries after cell is moved
-        //dump(taskstodo)
-        //dump(completedtasks)
-    }
-    
-    // MARK: - Setup Functions
-    
-    // Setup Navigation - Edit Button | Title | Add Button
-    func setupNavigation() {
-        navigationItem.title = "Things to Do"
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Edit", style: .plain, target: self, action: #selector(editTask))
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addTask))
-    }
-    
-    // Loads Samples
-    func loadsamples() {
-        let creation = currentdate() // Function Referenced in Task.swift
-        
-        let task1 = Task(name: "New Task 1", history: ["\(creation) Task Created"], taskIdentifier: 1)
-        let task2 = Task(name: "New Task 2", history: ["\(creation) Task Created"], taskIdentifier: 2)
-        let task3 = Task(name: "New Task 3", history: ["\(creation) Task Created"], taskIdentifier: 3)
-        
-        TaskList.ToDoList = [task3, task2, task1]
+            default: fatalError("Task is not Designated")}
+            
+        default: fatalError("App did not find destination of cell")}
     }
 }
 
-// Handles Peer-To-Peer Recieving Data
-extension MasterViewController : PeerToPeerManagerDelegate {
-    func collaboratorDevices(manager: PeerToPeerManager, connectedDevices: [String]) {
-        print("Recieved New Collaborator on Master View")
+extension MasterViewController: DetailViewControllerDelegate { // MARK: - Recieves Updates from DetailViewController
+    func didFinishUpdating(_ detailViewController: DetailViewController, task: Task) {
+        var indexPath: IndexPath?
         
-        self.collaborators = connectedDevices
+        // Update Task if Task found in Yet to Do
+        if TaskList.ToDoList.count != 0 {
+            print("Checking ToDoList")
+            for i in 0...TaskList.ToDoList.count - 1 {
+                if TaskList.ToDoList[i].taskIdentifier == task.taskIdentifier {
+                    print("Updated Task At ToDoList \(i)")
+                    TaskList.ToDoList[i] = task
+                    indexPath = IndexPath(row: i, section: 0)
+                }
+            }
+        }
+        
+        // Update Task if Task found in Completed
+        if TaskList.CompletedList.count != 0 {
+            print("Checking Completed List")
+            for i in 0...TaskList.CompletedList.count - 1 {
+                if TaskList.CompletedList[i].taskIdentifier == task.taskIdentifier {
+                    print("Updated Task at CompletedList \(i)")
+                    TaskList.CompletedList[i] = task
+                    indexPath = IndexPath(row: i, section: 1)
+                }
+            }
+        }
+        
+        DispatchQueue.main.async {
+            if indexPath != nil {
+                print("Reloading Row at \(indexPath!)")
+                self.tableView.reloadRows(at: [indexPath!], with: .none)
+            }
+        }
+    }
+    
+    func updateTaskList(_ detailViewController: DetailViewController, recievedList: MasterList) {
+        print("Recieved Task List Update from Detail View")
+        let recievedListCount = recievedList.ToDoList.count + recievedList.CompletedList.count
+        let TaskListCount = TaskList.ToDoList.count + TaskList.CompletedList.count
+        
+        if recievedListCount >= TaskListCount { // Compares Task List sizes and override with the larger listing
+            print ("Task List Override: Updating Current List")
+            self.TaskList = recievedList
+        }
+        
+        else { print("Current Task List Larger, Maintaining Current Task List") }
         
         DispatchQueue.main.async {
             self.tableView.reloadData()
         }
     }
     
-    func manager(manager: PeerToPeerManager, didRecieve data: Data) {
+    func updatingCollaborators(_ detailViewController: DetailViewController, collaborators: Array<String>) {
+        print("Updated Collaborators List")
+        self.collaborators = collaborators // Update Collaborators
+    }
+}
+
+extension MasterViewController : PeerToPeerManagerDelegate { // MARK: - Peer to Peer Recieving Updates
+    
+    // Recieved Update to Collaborators from Peer Network
+    func collaboratorDevices(manager: PeerToPeerManager, connectedDevices: [String]) {
+        print("Updated Collaborators List")
         
+        self.collaborators = connectedDevices
+    }
+    
+    // Recieved Data from Peer Network
+    func manager(manager: PeerToPeerManager, didRecieve data: Data) {
+        print("Recieved Data")
         let recievedArray = try? JSONDecoder().decode(MasterList.self, from: data) // Catches Array Data
         let recievedItem = try? JSONDecoder().decode(Task.self, from: data) // Catches Task Data
         
         // Catches data if the send data is an update to the array configuration
         if recievedArray != nil {
-            self.TaskList = recievedArray!
+            print("Data Recieved is Array Update")
+            let ListCount = TaskList.ToDoList.count + TaskList.CompletedList.count
+            let RecievedCount = (recievedArray?.ToDoList.count)! + (recievedArray?.CompletedList.count)!
+            if RecievedCount >= ListCount { // Compares Task List Size and Overrides with larger listing
+                print("Task List Override: Updating Task List")
+                self.TaskList = recievedArray!
+            }
+            
+            else { print("Current Task List Larger, Maintaining Current Task List") }
         }
         
         // Catches data if the send data is an update to a specified task
         if recievedItem != nil {
-            
+            print("Data Recieved is Task Update")
             // Updates item if item is located in the Yet to Do section
-            for i in 0...TaskList.ToDoList.count - 1 {
-                if TaskList.ToDoList[i].taskIdentifier == recievedItem?.taskIdentifier {
-                    TaskList.ToDoList[i] = recievedItem!
+            if TaskList.ToDoList.count != 0 {
+                print("Checking ToDoList")
+                for i in 0...TaskList.ToDoList.count - 1 {
+                    if TaskList.ToDoList[i].taskIdentifier == recievedItem?.taskIdentifier {
+                        print("Recieved Update to Task \(i) in ToDoList")
+                        TaskList.ToDoList[i] = recievedItem!
+                    }
                 }
             }
             
             // Updates item if item is located in the Completed Section
-            for i in 0...TaskList.CompletedList.count - 1 {
-                if TaskList.CompletedList[i].taskIdentifier == recievedItem?.taskIdentifier {
-                    TaskList.CompletedList[i] = recievedItem!
+            if TaskList.CompletedList.count != 0 {
+                print("Checking Completed List")
+                for i in 0...TaskList.CompletedList.count - 1 {
+                    if TaskList.CompletedList[i].taskIdentifier == recievedItem?.taskIdentifier {
+                        print("Recieved Update to Task \(i) in Completed List")
+                        TaskList.CompletedList[i] = recievedItem!
+                    }
                 }
             }
         }

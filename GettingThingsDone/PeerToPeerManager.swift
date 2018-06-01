@@ -43,6 +43,11 @@ class PeerToPeerManager: NSObject {
         self.serviceBrowser.startBrowsingForPeers()
     }
     
+    deinit {
+        self.serviceAdvertiser.stopAdvertisingPeer()
+        self.serviceBrowser.stopBrowsingForPeers()
+    }
+    
     func send(data: Data) {
         print("sentData: \(data) to \(session.connectedPeers.count) peers")
         if session.connectedPeers.count > 0 {
@@ -53,11 +58,6 @@ class PeerToPeerManager: NSObject {
                 print("Error for sending: \(error)")
             }
         }
-    }
-    
-    deinit {
-        self.serviceAdvertiser.stopAdvertisingPeer()
-        self.serviceBrowser.stopBrowsingForPeers()
     }
 }
 

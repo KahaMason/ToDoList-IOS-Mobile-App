@@ -8,12 +8,20 @@
 
 import UIKit
 
-class DetailViewController: UITableViewController, UITextFieldDelegate {
+protocol DetailViewControllerDelegate {
+    func didFinishUpdating(_ detailViewController: DetailViewController, task: Task)
+    func updateTaskList(_ detailViewController: DetailViewController, recievedList: MasterList)
+    func updatingCollaborators(_ detailViewController: DetailViewController, collaborators: Array<String>)
+}
+
+class DetailViewController: UITableViewController {
 
     var sectionheaders = ["Task", "History", "Collaborators"]
     var taskItem: Task?
     var collaborators = [String]()
     var peerToPeer: PeerToPeerManager?
+    
+    var delegate: DetailViewControllerDelegate? = nil
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,6 +33,10 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
         view.backgroundColor = UIColor.black
         navigationItem.title = "Task"
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addHistory))
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        peerToPeer?.delegate = self // Return PeerToPeerManagerDelegate to Detail View when viewing Task Detail
     }
 
     override func didReceiveMemoryWarning() {
@@ -45,41 +57,8 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
         taskItem?.history.insert(newhistory, at: indexPath.row)
         tableView.insertRows(at: [indexPath], with: .automatic)
         
-        //dump(taskItem?.history) // <- Debug for Task History Array
-        peerToPeer?.send(data: (taskItem?.json)!)
-    }
-    
-    // MARK: - TextField Functions
-    
-    // Enables the return key to finish editing a TextField
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        return true
-    }
-    
-    // Updates the Task Item's information to the array when finished editing
-    func textFieldDidEndEditing(_ textField: UITextField) {
-        //print("Finished Editing TextField") // Debug: For Finished Editing
-        
-        // Finds and retrieves the position of the cell thats textfield is being edited
-        let cell = textField.superview?.superview as! DetailViewCell
-        let indexPath = self.tableView.indexPath(for: cell)
-        
-        // Guard against returning empty textfield
-        if textField.text?.isEmpty == false {
-            switch indexPath?.section {
-            
-            case 0?: taskItem?.name = textField.text!
-            case 1?: taskItem?.history[(indexPath?.row)!] = textField.text!
-            case 2?: collaborators[(indexPath?.row)!] = textField.text!
-            default: fatalError("No TextFields Selected")
-            
-            }
-            
-            tableView.reloadRows(at: [indexPath!], with: .none)
-            
-            peerToPeer?.send(data: (taskItem?.json)!)
-        }
+        self.delegate?.didFinishUpdating(self, task: taskItem!) // Send Task Update to Master View Task List
+        peerToPeer?.send(data: (taskItem?.json)!) // Send Task Update to Peer Network
     }
 
     // MARK: - Table View
@@ -138,17 +117,63 @@ class DetailViewController: UITableViewController, UITextFieldDelegate {
     }
 }
 
-// Handles Peer To Peer Recieving Data and Changes
-extension DetailViewController : PeerToPeerManagerDelegate {
+extension DetailViewController: UITextFieldDelegate { // MARK: - TextField Functions
+    
+    // Enables the return key to finish editing a TextField
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        
+        self.delegate?.didFinishUpdating(self, task: self.taskItem!) // Send Task Update to Master View Task List
+        peerToPeer?.send(data: (taskItem?.json)!) // Send Task Update to Peer Network
+        
+        return true
+    }
+    
+    // Updates the Task Item's information to the array when finished editing
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        
+        // Finds and retrieves the position of the cell thats textfield is being edited
+        let cell = textField.superview?.superview as! DetailViewCell
+        let indexPath = self.tableView.indexPath(for: cell)
+        
+        // Guard against returning empty textfield
+        if textField.text?.isEmpty == false {
+            switch indexPath?.section {
+                
+            case 0?: taskItem?.name = textField.text!
+            case 1?: taskItem?.history[(indexPath?.row)!] = textField.text!
+            case 2?: collaborators[(indexPath?.row)!] = textField.text!
+            default: fatalError("No TextFields Selected")
+                
+            }
+            
+            tableView.reloadRows(at: [indexPath!], with: .none)
+        }
+    }
+}
+
+extension DetailViewController : PeerToPeerManagerDelegate { // MARK: - Peer To Peer Recieving Updates
+    
+    // Recieved Data from Peer Network
     func manager(manager: PeerToPeerManager, didRecieve data: Data) {
         
         // Catches information if the information sent is Task information of current task
-        let task = try? JSONDecoder().decode(Task.self, from: data)
+        let recievedList = try? JSONDecoder().decode(MasterList.self, from: data)
+        let recievedItem = try? JSONDecoder().decode(Task.self, from: data)
+        
+        if recievedList != nil {
+            print("Recieved Task List Update, Sending to Master View")
+            self.delegate?.updateTaskList(self, recievedList: recievedList!) // Send Recieved Task List Update to Master View DetailViewController Delegate
+        }
         
         // If there is no information sent about current task, don't update
-        if task != nil {
-            if task?.taskIdentifier == taskItem?.taskIdentifier {
-                taskItem = task
+        if recievedItem != nil {
+            print("Recieved a Task from Peer Network, Sending to Master View")
+            self.delegate?.didFinishUpdating(self, task: recievedItem!) // Send Recieved Task to Master View DetailViewController Delegate
+            
+            if recievedItem?.taskIdentifier == taskItem?.taskIdentifier {
+                print("Updating This Task")
+                taskItem = recievedItem // Update Current Task Details
             }
         }
         
@@ -157,10 +182,12 @@ extension DetailViewController : PeerToPeerManagerDelegate {
         }
     }
     
+    // Recieved Collaborators update from Peer Network
     func collaboratorDevices(manager: PeerToPeerManager, connectedDevices: [String]) {
-        print("Recieved a New Collaborator on Detail View")
+        print("Recieved a Collaborator Update")
         
         self.collaborators = connectedDevices // Fill Collaboraters array as devices connect
+        self.delegate?.updatingCollaborators(self, collaborators: self.collaborators) // Send Update to Collaborators Array in Master View
         
         DispatchQueue.main.async {
             self.tableView.reloadData() // Reform tableView to display updates
