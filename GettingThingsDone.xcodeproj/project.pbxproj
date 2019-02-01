@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7820B22620B2EB44000A072F /* PeerToPeerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7820B22520B2EB44000A072F /* PeerToPeerManager.swift */; };
 		7821F9E520B1382700A222E5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7821F9E420B1382700A222E5 /* AppDelegate.swift */; };
 		7821F9E720B1382700A222E5 /* MasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7821F9E620B1382700A222E5 /* MasterViewController.swift */; };
 		7821F9EC20B1382800A222E5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7821F9EA20B1382800A222E5 /* Main.storyboard */; };
@@ -37,6 +38,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7820B22520B2EB44000A072F /* PeerToPeerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeerToPeerManager.swift; sourceTree = "<group>"; };
 		7821F9E120B1382700A222E5 /* GettingThingsDone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GettingThingsDone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7821F9E420B1382700A222E5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7821F9E620B1382700A222E5 /* MasterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasterViewController.swift; sourceTree = "<group>"; };
@@ -104,6 +106,7 @@
 			isa = PBXGroup;
 			children = (
 				7821F9E420B1382700A222E5 /* AppDelegate.swift */,
+				7820B22520B2EB44000A072F /* PeerToPeerManager.swift */,
 				7821F9E620B1382700A222E5 /* MasterViewController.swift */,
 				7821FA1620B182DB00A222E5 /* DetailViewController.swift */,
 				7821FA1820B19E5700A222E5 /* DetailViewCell.swift */,
@@ -268,6 +271,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7820B22620B2EB44000A072F /* PeerToPeerManager.swift in Sources */,
 				7821FA1520B13BDB00A222E5 /* Task.swift in Sources */,
 				7821F9E720B1382700A222E5 /* MasterViewController.swift in Sources */,
 				7821FA1920B19E5700A222E5 /* DetailViewCell.swift in Sources */,
@@ -438,11 +442,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = GettingThingsDone/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = au.edu.griffith.ict.prog.GettingThingsDone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -452,11 +459,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = GettingThingsDone/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = au.edu.griffith.ict.prog.GettingThingsDone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
